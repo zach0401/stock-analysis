@@ -1,116 +1,107 @@
-from src.tools import (
-    tool_fetch_market_data,
-    tool_retrieve_filing_context,
-    tool_summarize_with_citations
-)
+from langchain.agents import create_agent
+from langchain_ollama import ChatOllama
+from langchain_core.tools import tool
+from src.data_fetcher import get_stock_info, get_recent_news
+from src.rag.retriever import get_relevant_context
 import time
-import json
+
+
+@tool
+def fetch_market_data(ticker: str) -> str:
+    """
+    Use this to get live market data for a stock ticker.
+    Returns current price, PE ratio, revenue, margins, analyst targets.
+    Use when the user asks about current price, valuation, or financial metrics.
+    Input: ticker symbol like AAPL, TSLA, MSFT
+    """
+    stock = get_stock_info(ticker)
+    news = get_recent_news(ticker)
+    news_text = "\n".join([f"- {n['title']}" for n in news if n.get('title')])
+    if not news_text:
+        news_text = "No recent news available"
+    return f"MARKET DATA:\n{stock}\n\nRECENT NEWS:\n{news_text}"
+
+
+@tool
+def retrieve_filing_context(ticker_and_question: str) -> str:
+    """
+    Use this to search SEC 10-K filings for a company.
+    Returns relevant excerpts with page citations.
+    Use when the user asks about risks, strategy, competition, products,
+    legal proceedings, R&D, or anything requiring document context.
+    Input format: 'TICKER: question' e.g. 'AAPL: What are the main risks?'
+    """
+    if ":" in ticker_and_question:
+        ticker, question = ticker_and_question.split(":", 1)
+        ticker = ticker.strip().upper()
+        question = question.strip()
+    else:
+        return "Invalid input. Use format: 'TICKER: question'"
+
+    return get_relevant_context(query=question, ticker=ticker, k=4)
+
+
+def build_agent():
+    llm = ChatOllama(model="llama3.1:8b", temperature=0.3)
+    tools = [fetch_market_data, retrieve_filing_context]
+
+    return create_agent(
+    model=llm,
+    tools=tools,
+    system_prompt="""You are an expert stock analyst with access to two tools:
+1. fetch_market_data — gets live price, PE ratio, revenue, margins for any ticker
+2. retrieve_filing_context — searches SEC 10-K filings for document context
+
+RULES:
+- Only call tools you actually need for the question asked
+- For price/valuation questions: use fetch_market_data only
+- For strategy/risk/competition questions: use retrieve_filing_context only
+- For comprehensive analysis: use both tools
+- Always cite page numbers when using filing context
+- Never invent numbers not returned by the tools
+- After receiving tool results, you MUST provide a detailed answer using the data returned
+- Your response must include the actual numbers and analysis from the tool output
+- Only add 'DISCLAIMER: This is not financial advice.' at the very end after your full answer"""
+)
 
 
 def run_agent(ticker: str, question: str = None) -> dict:
-    """
-    Main agent loop.
-    Takes a ticker and optional specific question.
-    Decides which tools to call, calls them, returns structured result.
-    """
+    start = time.time()
+    agent = build_agent()
 
-    ticker = ticker.upper().strip()
-    session_log = []  # observability — logs every tool call
-    start_total = time.time()
+    if question:
+        user_input = f"Ticker: {ticker}. Question: {question}"
+    else:
+        user_input = f"Give me a full analysis of {ticker} including current valuation, key financial signals, main risks from their filings, and overall outlook."
 
-    print(f"\n[Agent] Starting analysis for {ticker}")
-    print(f"[Agent] Question: {question or 'Full analysis'}")
+    print(f"\n[Agent] Starting for {ticker}")
 
-    # --- Tool call 1: Always fetch live market data ---
-    print(f"\n[Agent] Calling tool: fetch_market_data")
-    market_result = tool_fetch_market_data(ticker)
-
-    session_log.append({
-        "tool": "fetch_market_data",
-        "ticker": ticker,
-        "latency": market_result["latency_seconds"],
-        "status": "success" if market_result["stock_data"] else "failed"
+    try:
+        result = agent.invoke({
+         "messages": [{"role": "user", "content": user_input}]
     })
+        analysis = result["messages"][-1].content
+        log = [{"status": "success"}]
+    except Exception as e:
+        analysis = f"Agent error: {str(e)}"
+        log = [{"error": str(e)}]
 
-    # Check if we got valid data back
-    if not market_result["stock_data"]:
-        return {
-            "error": f"Could not fetch market data for {ticker}. Check the ticker symbol.",
-            "ticker": ticker,
-            "log": session_log
-        }
+    stock_data = get_stock_info(ticker)
 
-    stock_data = market_result["stock_data"]
-    news = market_result["news"]
-
-    # --- Tool call 2: Try to retrieve document context ---
-    print(f"\n[Agent] Calling tool: retrieve_filing_context")
-
-    # Build a smart search query from the question or use a default
-    search_query = question if question else (
-        f"{stock_data['company_name']} revenue risks competition "
-        f"outlook business performance"
-    )
-
-    rag_result = tool_retrieve_filing_context(ticker, search_query)
-    rag_context = rag_result["context"]
-
-    session_log.append({
-        "tool": "retrieve_filing_context",
-        "ticker": ticker,
-        "query": search_query,
-        "latency": rag_result["latency_seconds"],
-        "has_context": "No documents" not in rag_context and "Could not" not in rag_context
-    })
-
-    # --- Tool call 3: Summarize everything ---
-    print(f"\n[Agent] Calling tool: summarize_with_citations")
-
-    summary_result = tool_summarize_with_citations(
-        stock_data=stock_data,
-        news=news,
-        rag_context=rag_context,
-        ticker=ticker,
-        question=question
-    )
-
-    session_log.append({
-        "tool": "summarize_with_citations",
-        "ticker": ticker,
-        "latency": summary_result["latency_seconds"],
-        "status": "success"
-    })
-
-    total_latency = round(time.time() - start_total, 2)
-
-    print(f"\n[Agent] Complete. Total time: {total_latency}s")
-
-    # Final structured result
     return {
         "ticker": ticker,
         "company_name": stock_data.get("company_name", ticker),
         "current_price": stock_data.get("current_price", "N/A"),
         "sector": stock_data.get("sector", "N/A"),
-        "analysis": summary_result["analysis"],
-        "rag_used": session_log[1]["has_context"],
-        "total_latency_seconds": total_latency,
-        "log": session_log
+        "analysis": analysis,
+        "rag_used": True,
+        "total_latency_seconds": round(time.time() - start, 2),
+        "log": log
     }
 
 
 if __name__ == "__main__":
-    import json
-
-    result = run_agent("AAPL", "What are the main risks and revenue outlook?")
-
+    result = run_agent("AAPL", "What is the current stock price?")
     print("\n" + "=" * 60)
-    print(f"Company: {result['company_name']}")
-    print(f"RAG used: {result['rag_used']}")
-    print(f"Total latency: {result['total_latency_seconds']}s")
-    print("\nAnalysis:")
     print(result["analysis"])
-    print("=" * 60)
-
-    # Debug — print full session log
-    print("\nFull Session Log:")
-    print(json.dumps(result["log"], indent=2))
+    print(f"Latency: {result['total_latency_seconds']}s")

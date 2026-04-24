@@ -8,7 +8,7 @@ CHROMA_DIR = "./data/chroma_db"
 
 # Reranker model — scores query+chunk pairs for precision
 RERANKER_MODEL = "cross-encoder/ms-marco-MiniLM-L-6-v2"
-reranker = CrossEncoder(RERANKER_MODEL)
+_reranker = None # lazy load
 
 
 def hybrid_search(vectorstore, query: str, k: int = 10) -> list:
@@ -66,19 +66,19 @@ def hybrid_search(vectorstore, query: str, k: int = 10) -> list:
     return combined
 
 
+RERANKER_MODEL = "cross-encoder/ms-marco-MiniLM-L-6-v2"
+_reranker = None  # lazy loaded
+
 def rerank(query: str, candidates: list, top_k: int = 4) -> list:
-    """
-    Use cross-encoder to rerank candidates by relevance to query.
-    More precise than initial retrieval — scores query+chunk together.
-    """
+    global _reranker
+    if _reranker is None:
+        _reranker = CrossEncoder(RERANKER_MODEL)
+    
     if not candidates:
         return []
 
-    # Score each candidate against the query
     pairs = [[query, doc.page_content] for doc in candidates]
-    scores = reranker.predict(pairs)
-
-    # Sort by score descending, return top_k
+    scores = _reranker.predict(pairs)
     scored = sorted(zip(scores, candidates), key=lambda x: x[0], reverse=True)
     return [doc for _, doc in scored[:top_k]]
 

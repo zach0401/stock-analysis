@@ -9,7 +9,7 @@ client = OpenAI(
     api_key="ollama"
 )
 
-MODEL = "llama3.2"
+MODEL = "llama3.1:8b"
 
 SYSTEM_PROMPT = """You are an expert stock analyst. You are given structured financial data about a company,
 recent news, and optionally, relevant excerpts from official company documents (10-K filings, annual reports).
@@ -26,6 +26,8 @@ Critical rules:
 - If a document excerpt is relevant, cite it with its page number.
 - Never say "trillion" for a company with billion-scale revenue.
 - Be specific. Generic analysis is not acceptable.
+- If financial data contains a table, reformat it as a clean markdown table with | separators. 
+- Never output raw PDF table text with numbers separated only by spaces.
 
 Always end with: DISCLAIMER: This is not financial advice. Do your own research."""
 
