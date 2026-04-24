@@ -1,0 +1,71 @@
+{
+    "version": "1.1",
+    "ticker": "AAPL",
+    "description": "Evaluation dataset for Apple Inc. 10-K RAG pipeline",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "What are the main risk factors for Apple?",
+        "expected_keywords": ["competition", "licensing", "supply chain", "regulatory"],
+        "expected_section": "Risk Factors",
+        "min_expected_page": 6,
+        "max_expected_page": 15
+      },
+      {
+        "id": "q2",
+        "question": "What does Apple say about competition in its markets?",
+        "expected_keywords": ["competitive", "price", "margins", "market"],
+        "expected_section": "Competition",
+        "min_expected_page": 3,
+        "max_expected_page": 8
+      },
+      {
+        "id": "q3",
+        "question": "What is Apple's total net sales and net income?",
+        "expected_keywords": ["net", "sales", "income", "billion"],
+        "expected_section": "Financial Statements",
+        "min_expected_page": 25,
+        "max_expected_page": 45
+      },
+      {
+        "id": "q4",
+        "question": "What are Apple's main products and services?",
+        "expected_keywords": ["iPhone", "Mac", "iPad", "Services", "wearables"],
+        "expected_section": "Item 1.",
+        "min_expected_page": 1,
+        "max_expected_page": 6
+      },
+      {
+        "id": "q5",
+        "question": "What does Apple say about supply chain and manufacturing?",
+        "expected_keywords": ["supplier", "manufacturer", "component", "outsource"],
+        "expected_section": "Item 1.",
+        "min_expected_page": 1,
+        "max_expected_page": 10
+      },
+      {
+        "id": "q6",
+        "question": "What are Apple's research and development expenses?",
+        "expected_keywords": ["research", "development", "R&D", "expense"],
+        "expected_section": "Financial Statements",
+        "min_expected_page": 20,
+        "max_expected_page": 45
+      },
+      {
+        "id": "q7",
+        "question": "What does Apple say about its legal proceedings?",
+        "expected_keywords": ["legal", "litigation", "proceedings", "claims"],
+        "expected_section": "Item 3.",
+        "min_expected_page": 10,
+        "max_expected_page": 25
+      },
+      {
+        "id": "q8",
+        "question": "What is Apple's debt and financial obligations?",
+        "expected_keywords": ["obligation", "notes", "debt", "term"],
+        "expected_section": "Financial Statements",
+        "min_expected_page": 30,
+        "max_expected_page": 80
+      }
+    ]
+  }

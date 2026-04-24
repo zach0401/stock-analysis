@@ -1,0 +1,193 @@
+{
+  "summary": {
+    "total_questions": 8,
+    "passing": 8,
+    "avg_score": 0.79,
+    "avg_keyword_score": 0.68,
+    "avg_latency_seconds": 4.89
+  },
+  "results": [
+    {
+      "keyword_score": 0.25,
+      "page_score": 1.0,
+      "section_score": 1.0,
+      "overall_score": 0.62,
+      "found_keywords": [
+        "competition"
+      ],
+      "missing_keywords": [
+        "licensing",
+        "supply chain",
+        "regulatory"
+      ],
+      "pages_retrieved": [
+        2,
+        7,
+        20,
+        4
+      ],
+      "question_id": "q1",
+      "question": "What are the main risk factors for Apple?",
+      "latency_seconds": 4.95
+    },
+    {
+      "keyword_score": 1.0,
+      "page_score": 1.0,
+      "section_score": 1.0,
+      "overall_score": 1.0,
+      "found_keywords": [
+        "competitive",
+        "price",
+        "margins",
+        "market"
+      ],
+      "missing_keywords": [],
+      "pages_retrieved": [
+        5,
+        9,
+        4,
+        4
+      ],
+      "question_id": "q2",
+      "question": "What does Apple say about competition in its markets?",
+      "latency_seconds": 4.4
+    },
+    {
+      "keyword_score": 0.75,
+      "page_score": 1.0,
+      "section_score": 1.0,
+      "overall_score": 0.88,
+      "found_keywords": [
+        "net",
+        "sales",
+        "income"
+      ],
+      "missing_keywords": [
+        "billion"
+      ],
+      "pages_retrieved": [
+        31,
+        37,
+        32,
+        37
+      ],
+      "question_id": "q3",
+      "question": "What is Apple's total net sales and net income?",
+      "latency_seconds": 4.61
+    },
+    {
+      "keyword_score": 0.4,
+      "page_score": 1.0,
+      "section_score": 1.0,
+      "overall_score": 0.7,
+      "found_keywords": [
+        "Services",
+        "wearables"
+      ],
+      "missing_keywords": [
+        "iPhone",
+        "Mac",
+        "iPad"
+      ],
+      "pages_retrieved": [
+        3,
+        3,
+        3,
+        4
+      ],
+      "question_id": "q4",
+      "question": "What are Apple's main products and services?",
+      "latency_seconds": 4.91
+    },
+    {
+      "keyword_score": 0.5,
+      "page_score": 1.0,
+      "section_score": 0.0,
+      "overall_score": 0.55,
+      "found_keywords": [
+        "supplier",
+        "manufacturer"
+      ],
+      "missing_keywords": [
+        "component",
+        "outsource"
+      ],
+      "pages_retrieved": [
+        7,
+        7,
+        9,
+        7
+      ],
+      "question_id": "q5",
+      "question": "What does Apple say about supply chain and manufacturing?",
+      "latency_seconds": 4.84
+    },
+    {
+      "keyword_score": 1.0,
+      "page_score": 1.0,
+      "section_score": 1.0,
+      "overall_score": 1.0,
+      "found_keywords": [
+        "research",
+        "development",
+        "R&D",
+        "expense"
+      ],
+      "missing_keywords": [],
+      "pages_retrieved": [
+        27,
+        31,
+        27,
+        35
+      ],
+      "question_id": "q6",
+      "question": "What are Apple's research and development expenses?",
+      "latency_seconds": 5.63
+    },
+    {
+      "keyword_score": 1.0,
+      "page_score": 1.0,
+      "section_score": 0.0,
+      "overall_score": 0.8,
+      "found_keywords": [
+        "legal",
+        "litigation",
+        "proceedings",
+        "claims"
+      ],
+      "missing_keywords": [],
+      "pages_retrieved": [
+        21,
+        21,
+        3,
+        2
+      ],
+      "question_id": "q7",
+      "question": "What does Apple say about its legal proceedings?",
+      "latency_seconds": 4.73
+    },
+    {
+      "keyword_score": 0.5,
+      "page_score": 1.0,
+      "section_score": 1.0,
+      "overall_score": 0.75,
+      "found_keywords": [
+        "obligation",
+        "notes"
+      ],
+      "missing_keywords": [
+        "debt",
+        "term"
+      ],
+      "pages_retrieved": [
+        54,
+        37,
+        37,
+        33
+      ],
+      "question_id": "q8",
+      "question": "What is Apple's debt and financial obligations?",
+      "latency_seconds": 5.06
+    }
+  ]
+}
