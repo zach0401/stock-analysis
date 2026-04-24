@@ -23,7 +23,6 @@ with st.sidebar:
 
     if st.button("Ingest Document") and uploaded_file and doc_ticker:
         with st.spinner(f"Ingesting {uploaded_file.name}..."):
-            # Save uploaded file temporarily
             with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
                 tmp.write(uploaded_file.read())
                 tmp_path = tmp.name
@@ -41,9 +40,10 @@ with st.sidebar:
     st.markdown("""
     1. Enter a ticker symbol
     2. Ask a specific question or run full analysis
-    3. Agent fetches live market data
-    4. Agent searches ingested documents for context
-    5. LLM synthesizes everything into structured analysis
+    3. Agent decides which tools to call
+    4. Fetches live market data if needed
+    5. Searches ingested documents if needed
+    6. LLM synthesizes everything into structured analysis
     """)
 
 # --- Main: Analysis ---
@@ -73,8 +73,8 @@ with col2:
                 question=question_input if question_input else None
             )
 
-        if "error" in result:
-            st.error(result["error"])
+        if "error" in result.get("log", [{}])[0]:
+            st.error(result["log"][0]["error"])
         else:
             # Header metrics
             m1, m2, m3, m4 = st.columns(4)
@@ -91,19 +91,12 @@ with col2:
 
             st.divider()
 
-            # Observability — session log
+            # Observability session log
             with st.expander("🔍 Session Log (observability)"):
                 for entry in result["log"]:
-                    tool = entry["tool"]
-                    latency = entry.get("latency", "?")
-                    status = entry.get("status", "")
-                    has_ctx = entry.get("has_context", "")
-
-                    if tool == "retrieve_filing_context":
-                        st.write(f"✅ `{tool}` — {latency}s — context found: {has_ctx}")
-                    else:
-                        st.write(f"✅ `{tool}` — {latency}s — {status}")
-
+                    status = entry.get("status", entry.get("error", "unknown"))
+                    st.write(f"✅ Agent status: {status}")
+                st.write(f"**RAG used:** {result['rag_used']}")
                 st.write(f"**Total latency:** {result['total_latency_seconds']}s")
 
     elif analyze_button and not ticker_input:

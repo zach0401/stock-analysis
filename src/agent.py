@@ -46,9 +46,9 @@ def build_agent():
     tools = [fetch_market_data, retrieve_filing_context]
 
     return create_agent(
-    model=llm,
-    tools=tools,
-    system_prompt="""You are an expert stock analyst with access to two tools:
+        model=llm,
+        tools=tools,
+        system_prompt="""You are an expert stock analyst with access to two tools:
 1. fetch_market_data — gets live price, PE ratio, revenue, margins for any ticker
 2. retrieve_filing_context — searches SEC 10-K filings for document context
 
@@ -62,7 +62,7 @@ RULES:
 - After receiving tool results, you MUST provide a detailed answer using the data returned
 - Your response must include the actual numbers and analysis from the tool output
 - Only add 'DISCLAIMER: This is not financial advice.' at the very end after your full answer"""
-)
+    )
 
 
 def run_agent(ticker: str, question: str = None) -> dict:
@@ -78,12 +78,22 @@ def run_agent(ticker: str, question: str = None) -> dict:
 
     try:
         result = agent.invoke({
-         "messages": [{"role": "user", "content": user_input}]
-    })
+            "messages": [{"role": "user", "content": user_input}]
+        })
+
         analysis = result["messages"][-1].content
+
+        # Accurately detect if RAG tool was actually called
+        rag_used = any(
+            hasattr(msg, "name") and msg.name == "retrieve_filing_context"
+            for msg in result["messages"]
+        )
+
         log = [{"status": "success"}]
+
     except Exception as e:
         analysis = f"Agent error: {str(e)}"
+        rag_used = False
         log = [{"error": str(e)}]
 
     stock_data = get_stock_info(ticker)
@@ -94,7 +104,7 @@ def run_agent(ticker: str, question: str = None) -> dict:
         "current_price": stock_data.get("current_price", "N/A"),
         "sector": stock_data.get("sector", "N/A"),
         "analysis": analysis,
-        "rag_used": True,
+        "rag_used": rag_used,
         "total_latency_seconds": round(time.time() - start, 2),
         "log": log
     }
@@ -103,5 +113,6 @@ def run_agent(ticker: str, question: str = None) -> dict:
 if __name__ == "__main__":
     result = run_agent("AAPL", "What is the current stock price?")
     print("\n" + "=" * 60)
-    print(result["analysis"])
+    print(f"Analysis: {result['analysis']}")
+    print(f"RAG used: {result['rag_used']}")
     print(f"Latency: {result['total_latency_seconds']}s")
